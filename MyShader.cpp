@@ -24,7 +24,14 @@ void MyShader::use()
 
 void MyShader::setInt(const char* name, int value)
 {
+	use();
 	glUniform1i(glGetUniformLocation(shaderID, name), value);
+}
+
+void MyShader::setMat4(const char* name, glm::mat4 value)
+{
+	use();
+	glUniformMatrix4fv(glGetUniformLocation(shaderID, name), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 void MyShader::loadTexture(const char* filename,int textureId,int format,const char* textureName,int id)
@@ -49,6 +56,5 @@ void MyShader::loadTexture(const char* filename,int textureId,int format,const c
 	glGenerateMipmap(GL_TEXTURE_2D);
 	//
 	stbi_image_free(data);
-	use();
 	setInt(textureName, id);
 }
