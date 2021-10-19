@@ -42,21 +42,73 @@ float currentFrame = glfwGetTime();
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+//向右向量
+glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
 void processInput(GLFWwindow* window)
 {
-	float cameraSpeed = 2.5f * deltaTime; // adjust accordingly
+	float cameraSpeed = 5.0f * deltaTime; // adjust accordingly
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
 		cameraPos -= cameraSpeed * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		cameraPos -= cameraRight * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		cameraPos += cameraRight * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 }
+//
+bool firstMouse = true;
+float lastX = 400.0f;
+float lastY = 300.0f;
+float pitch = 0.0f;
+float yaw = -90.0f;
+//鼠标切换方向向量
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	if (firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
 
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos;
+	lastX = xpos;
+	lastY = ypos;
+
+	float sensitivity = 0.1;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
+}
+
+//视野缩放
+float fov = 45.0f;
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yoffset;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
+}
 int main()
 {
 	glfwInit();
@@ -179,7 +231,11 @@ int main()
 	};
 	//
 	//shader.setMat4("view", view);
-	shader.setMat4("projection", projection);
+	//shader.setMat4("projection", projection);
+	//鼠标移动注册事件
+	glfwSetCursorPosCallback(window, mouse_callback);
+	//鼠标滚轮注册
+	glfwSetScrollCallback(window, scroll_callback);
 	//设置光标不可见
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	//启动深度测试
@@ -205,6 +261,10 @@ int main()
 		//
 		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 		shader.setMat4("view", view);
+		//
+		projection = glm::mat4(1.0f);
+		projection = glm::perspective(glm::radians(fov), (float)WIDTH / HEIGHT, 0.1f, 100.0f);
+		shader.setMat4("projection", projection);
 		for (int i = 0; i < 10; i++)
 		{
 			model = glm::mat4(1.0f);
