@@ -34,6 +34,12 @@ void MyShader::setMat4(const char* name, glm::mat4 value)
 	glUniformMatrix4fv(glGetUniformLocation(shaderID, name), 1, GL_FALSE, glm::value_ptr(value));
 }
 
+void MyShader::setVec3(const char* name, glm::vec3 value)
+{
+	use();
+	glUniform3f(glGetUniformLocation(shaderID, name), value.x, value.y, value.z);
+}
+
 void MyShader::loadTexture(const char* filename,int textureId,int format,const char* textureName,int id)
 {
 	//Œ∆¿Ì…Ë÷√

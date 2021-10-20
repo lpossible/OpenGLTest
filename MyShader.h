@@ -12,6 +12,7 @@ public:
 	void use();
 	void setInt(const char* name,int value);
 	void setMat4(const char* name, glm::mat4 value);
+	void setVec3(const char* name, glm::vec3 value);
 	void loadTexture(const char* filename, int textureId,int format, const char* textureName,int id);
 	unsigned int shaderID;
 };
